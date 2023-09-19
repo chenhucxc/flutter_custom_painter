@@ -1,10 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_painter/entities/custom_point.dart';
 import 'package:flutter_custom_painter/painter/line_segment_icon_painter.dart';
-import 'package:flutter_custom_painter/painter/line_segment_painter.dart';
 import 'package:flutter_custom_painter/utils/common_util.dart';
 import 'package:flutter_custom_painter/utils/spatial_relation_util.dart';
-import 'dart:ui' as ui;
 
 class LineSegmentWithIconPage extends StatefulWidget {
   const LineSegmentWithIconPage({super.key});

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_painter/pages/line_segment_icon_page.dart';
 import 'package:flutter_custom_painter/pages/line_segment_page.dart';
+import 'package:flutter_custom_painter/pages/rectangle_icon_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -133,6 +134,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               child: const Text('线段画布+Icon'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const RectangleWithIconPage(),
+                  ),
+                );
+              },
+              child: const Text('矩形画布+Icon'),
             ),
           ],
         ),
