@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_painter/entities/custom_point.dart';
 import 'package:flutter_custom_painter/entities/rectangle_bean.dart';
-import 'package:flutter_custom_painter/painter/rect_icon_painter.dart';
+import 'package:flutter_custom_painter/painter/rectangle_with_icon_painter.dart';
 import 'package:flutter_custom_painter/utils/common_util.dart';
 import 'package:flutter_custom_painter/utils/spatial_relation_util.dart';
 
@@ -25,6 +25,7 @@ class _RectangleWithIconPageState extends State<RectangleWithIconPage> {
 
   final _offsetsNotifier = ValueNotifier(RectangleBean());
   final _changedOffset = ValueNotifier(0);
+  Offset _iconOffset = Offset.zero;
 
   /// 手势
   static const moveAreaOutside = 0;
@@ -69,6 +70,9 @@ class _RectangleWithIconPageState extends State<RectangleWithIconPage> {
                       rectangleNotifier: _offsetsNotifier,
                       imageIcon: snapshot.data,
                       imageMargin: _iconMargin,
+                      iconOffsetChanged: (ret) {
+                        _iconOffset = ret;
+                      },
                       repaint: _changedOffset,
                     ),
                     child: Container(
@@ -94,7 +98,21 @@ class _RectangleWithIconPageState extends State<RectangleWithIconPage> {
     _offsetsNotifier.value = RectangleBean(offsets: rectOffsets);
   }
 
-  onTapUp(TapUpDetails details) {}
+  onTapUp(TapUpDetails details) {
+    var resizeOffset = _getResizeOffset(details.localPosition);
+    /// 本次点击事件的坐标点
+    var clickPoint = Point.translateFromOffset(resizeOffset);
+
+    /// delete icon 事件处理
+    var iconCenterDx = _iconOffset.dx + _iconSize / 2;
+    var iconCenterDy = _iconOffset.dy + _iconSize / 2;
+    var iconCenterPoint = Point(x: iconCenterDx, y: iconCenterDy);
+    var addTouchRange = 4;
+    var isClickInner = SpatialRelationUtil.isPointInCircle(iconCenterPoint, _iconSize / 2 + addTouchRange, clickPoint);
+    if (isClickInner) {
+      print('onTapUp->handle icon click event\n');
+    }
+  }
 
   onScaleStart(ScaleStartDetails details) {
     if (details.pointerCount == 1) {
@@ -123,7 +141,14 @@ class _RectangleWithIconPageState extends State<RectangleWithIconPage> {
       var offsets = _offsetsNotifier.value.offsets ?? [];
       if (pointIndex >= 0) {
         if (pointIndex >= 0 && _selectedSide < 0) {
-          offsets[pointIndex] = offsets[pointIndex].translate(deltaOffset.dx, deltaOffset.dy);
+          var originOffset = offsets[pointIndex];
+          var translateOffset = originOffset.translate(deltaOffset.dx, deltaOffset.dy);
+          var ret = _checkMinDistanceFromAB(pointIndex, translateOffset, offsets);
+          if (!ret) {
+            print('checkMinDistanceFromAB is false');
+            return;
+          }
+          offsets[pointIndex] = translateOffset;
           if (0 == pointIndex) {
             offsets[1] = offsets[1].translate(0, deltaOffset.dy);
             offsets[3] = offsets[3].translate(deltaOffset.dx, 0);
@@ -246,5 +271,28 @@ class _RectangleWithIconPageState extends State<RectangleWithIconPage> {
       return true;
     }
     return false;
+  }
+
+  bool _checkMinDistanceFromAB(int pointIndex, Offset pointA, List<Offset> offsets) {
+    var ret = false;
+
+    var indexOfPointB = 0;
+    var indexOfPointC = 3;
+    if (pointIndex < 3) {
+      indexOfPointB = pointIndex + 1;
+    }
+    if (pointIndex > 0) {
+      indexOfPointC = pointIndex - 1;
+    }
+    var pointB = offsets[indexOfPointB];
+    var pointC = offsets[indexOfPointC];
+    var distanceAB = SpatialRelationUtil.getDistanceFromTwoOffset(pointA, pointB);
+    var distanceAC = SpatialRelationUtil.getDistanceFromTwoOffset(pointA, pointC);
+    var minRectLineSize = _lineSegmentLength / 2;
+    if (distanceAB > minRectLineSize && distanceAC > minRectLineSize) {
+      ret = true;
+    }
+    print('checkMinDistanceFromAB->ret is $ret');
+    return ret;
   }
 }

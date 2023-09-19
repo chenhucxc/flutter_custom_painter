@@ -13,6 +13,7 @@ class RectangleWithIconPainter extends CustomPainter {
     this.imageIcon,
     this.imageMargin = 30,
     this.imageSize = 28,
+    this.iconOffsetChanged,
     Listenable? repaint,
   }) : super(repaint: repaint) {
     linePaint
@@ -31,6 +32,7 @@ class RectangleWithIconPainter extends CustomPainter {
   final ui.Image? imageIcon;
   final double imageMargin;
   final double imageSize;
+  final Function(Offset)? iconOffsetChanged;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -75,6 +77,7 @@ class RectangleWithIconPainter extends CustomPainter {
       var endPoint = Point.translateFromOffset(bottomRight);
       var offsetIcon = _updateIconOffsetByLineSegment(startPoint, endPoint);
       canvas.drawImage(closeIcon, offsetIcon, linePaint);
+      iconOffsetChanged?.call(offsetIcon);
     }
   }
 
